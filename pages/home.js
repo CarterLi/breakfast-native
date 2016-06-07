@@ -40,7 +40,7 @@ class Home extends Component {
           dataSource={this.state.buildings}
           renderRow={building => (
             <TouchableHighlight
-              key={building.id}
+              key={building.buildingId}
               onPress={()=> this.gotoMenu(building)}
               style={{padding: 8}}>
               <Text>{building.name}</Text>

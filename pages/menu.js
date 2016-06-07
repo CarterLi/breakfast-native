@@ -77,8 +77,11 @@ class Breakfast extends Component {
         getSectionHeaderData: (menus, sectionId) => menus[sectionId],
         getRowData: (menus, sectionId, rowId) => menus[sectionId].options[rowId]
       }),
-      row: 0
+      selectedMenuId: 0
     };
+  }
+
+  componentDidMount() {
     this.initData();
   }
 
@@ -111,13 +114,15 @@ class Breakfast extends Component {
   }
 
   initData() {
+    const { building } = this.props;
+    console.log(building)
     fetch('http://zaocan.ele.me/api/dishNew', {
       method: 'post',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({buildingId: this.props.building.id, userId: 26002922})
+      body: JSON.stringify({buildingId: building.buildingId, userId: 26002922})
     })
       .then(response => response.json())
       .then(result => {
@@ -146,14 +151,20 @@ class Breakfast extends Component {
           menuLists: this.state.menuLists.cloneWithRowsAndSections(data.menus, Object.keys(data.menus), data.menus.map(x => Object.keys(x.options)))
         })
       })
-      .catch(e => alert(e));
+      .catch(e => {
+        console.error(e);
+        alert(e);
+      });
   }
 
   renderMenuDay(menu, sectionId, rowId) {
-    console.log(this.state.row);
+    sectionId = +sectionId;
+    rowId = +rowId;
+    const highlight = this.state.selectedMenuId === rowId;
     return (
-      <TouchableHighlight key={+menu.date} onPress={this.scrollToMenu.bind(this, menu)}>
-        <View style={{backgroundColor: this.state.row === sectionId ? 'yellow' : 'transparent'}}>
+      <TouchableHighlight key={+menu.date}
+                          onPress={this.scrollToMenu.bind(this, menu)}>
+        <View style={{backgroundColor: highlight ? 'yellow' : 'transparent', padding: 5}}>
           <Text style={styles.textCenter}>{menu.day}</Text>
           <Text style={styles.textCenter}>{dateFormat(menu.date, 'mm-dd')}</Text>
         </View>
@@ -162,12 +173,16 @@ class Breakfast extends Component {
   }
 
   scrollToMenu(menu) {
-    this.refs.rightScroller.scrollTo({y: 0});
+    if (menu.$ref) {
+      menu.$ref.measure((x, y) => {
+        this.refs.rightScroller.scrollTo({y});
+      });
+    }
   }
 
-  onChangeVisibleRows(visibleRows, changedRows) {
-    const row = Math.min(...Object.keys(visibleRows));
-    this.setState({ row });
+  onChangeVisibleRows(visibleRows) {
+    const sectionId = Math.min(...Object.keys(visibleRows));
+    this.setState({ selectedMenuId: sectionId });
   }
 
   renderMenuListOption(option) {
@@ -200,7 +215,10 @@ class Breakfast extends Component {
             marginTop: 2,
           }}>{option.name}</Text>
           <View style={{flexDirection: 'row', marginTop: 10, flex: 1}}>
-            <Text style={{color: 'red'}}>{`￥${option.discounted} ￥${option.price}`}</Text>
+            <Text>
+              <Text style={{color: '#f60', fontSize: 17}}>{`￥${option.discounted} `}</Text>
+              <Text style={{color: '#999', fontSize: 11, textDecorationLine: 'line-through'}}>{`￥${option.price}`}</Text>
+            </Text>
           </View>
         </View>
       </View>
@@ -209,7 +227,7 @@ class Breakfast extends Component {
 
   renderMenuListHeader(menu) {
     return (
-      <View style={{alignSelf: "stretch", backgroundColor: '#F5FCFF', padding: 5}}>
+      <View ref={row => menu.$ref = row} style={{alignSelf: "stretch", backgroundColor: '#F5FCFF', padding: 5}}>
         <Text>{menu.day + '  ' + dateFormat(menu.date, 'mm-dd')}</Text>
       </View>
     );

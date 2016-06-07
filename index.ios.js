@@ -1,33 +1,11 @@
-/**
- * Eleme-Breakfast
- * https://github.com/facebook/react-native
- * @flow
- */
-
-import  {
-  AppRegistry,
-  NavigatorIOS,
-} from 'react-native';
-
 import React, {
   Component
 } from 'react';
 
-import Home from './pages/home';
+import  {
+  AppRegistry,
+} from 'react-native';
 
-AppRegistry.registerComponent('breakfast', () => (
-  class Application extends Component {
-    render() {
-      return (
-        <NavigatorIOS
-          style={{ flex: 1 }}
-          initialRoute={{
-            title: '楼宇选择',
-            name: 'home',
-            component: Home,
-          }}
-        />
-      )
-    }
-  }
-));
+import Application from './app';
+
+AppRegistry.registerComponent('breakfast', () => Application);
